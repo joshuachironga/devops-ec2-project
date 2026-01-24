@@ -10,23 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses
-    - name: Setup SSH key
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Copy website files to EC2
-      run: |
-        scp -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} \
-          ./website/about.html \
-          ./website/index.html \
-          ./website/ec2_user_data.md \
-          ./website/user_data.sh \
-          ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/tmp/
-    - name: Restart Nginx on EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} \
-          ubuntu@${{ secrets.EC2_PUBLIC_IP }} \
-          'sudo systemctl restart nginx && sudo systemctl status nginx'
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Copy website files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            about.html \
+            index.html \
+            ec2_user_data.md \
+            user_data.sh \
+            ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/tmp/
+
+      - name: Restart Nginx on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ubuntu@${{ secrets.EC2_PUBLIC_IP }} \
+            "sudo systemctl restart nginx"
